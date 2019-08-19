@@ -24,17 +24,20 @@ case class Div(a:Math, b: Math)extends Math{
   override def eval: Double = a.eval / b.eval
 }
 
-case class id (name: String) extends Math{
+case class Id (name: String) extends Math{
   override def eval: Double = throw new Error("Calculator.id")
 }
+case class Function(id: Id, expr: Expression) extends Expression
 
 object Calculator extends RegexParsers {
 
-  def number: Parser[Math] = """-?\d+(\.\d*)?""".r ^^ { n => Number(n.toDouble) }
+  def number: Parser[Number] = """-?\d+(\.\d*)?""".r ^^ { n => Number(n.toDouble) }
 
-  //def id: Parser[Expression] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ id
+  def id: Parser[Id] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ {str => Id(str)}
 
   def factor: Parser[Math] = number | "(" ~> expr <~ ")"
+
+  def funcCall: Parser[Function] = id ~ ("(" ~> expr <~ ")") ^^ (pair => Function(pair._1, pair._2))
 
   def term  : Parser[Math] = factor ~ rep( ("*"  | "/") ~ factor) ^^ {
     case number ~ list => list.foldLeft(number) {
