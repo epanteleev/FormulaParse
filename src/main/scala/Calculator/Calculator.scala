@@ -4,60 +4,61 @@ import scala.util.parsing.combinator.RegexParsers
 
 sealed trait Expression
 
-trait Math extends Expression {
-  def eval: Double
-}
-
-case class Number(double: Double) extends Math{
-  override def eval: Double = double
-}
-case class Summ (a:Math, b: Math) extends Math{
-  override def eval: Double = a.eval + b.eval
-}
-case class Sub (a:Math, b: Math)extends Math{
-  override def eval: Double = a.eval - b.eval
-}
-case class Prod (a:Math, b: Math)extends Math{
-  override def eval: Double = a.eval * b.eval
-}
-case class Div(a:Math, b: Math)extends Math{
-  override def eval: Double = a.eval / b.eval
-}
-
-case class Id (name: String) extends Math{
-  override def eval: Double = throw new Error("Calculator.id")
-}
+case class Number(double: Double) extends Expression
+case class Summ (a:Expression, b: Expression) extends Expression
+case class Sub (a:Expression, b: Expression)extends Expression
+case class Prod (a:Expression, b: Expression)extends Expression
+case class Div(a:Expression, b: Expression)extends Expression
+case class Id (name: String) extends Expression
 case class Function(id: Id, expr: Expression) extends Expression
 
 object Calculator extends RegexParsers {
+  lazy val default_const = Map("PI" -> math.Pi)
+  lazy val default_function = Map("sin" -> ((x:Double) => math.sin(x)),
+    "cos" -> ((x:Double) => math.cos(x)))
 
   def number: Parser[Number] = """-?\d+(\.\d*)?""".r ^^ { n => Number(n.toDouble) }
 
-  def id: Parser[Id] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ {str => Id(str)}
+  def id: Parser[Id] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ { str => Id(str) }
 
-  def factor: Parser[Math] = number | "(" ~> expr <~ ")"
+  def factor: Parser[Expression] = funcl | id | number | "(" ~> expr <~ ")"
 
-  def funcCall: Parser[Function] = id ~ ("(" ~> expr <~ ")") ^^ (pair => Function(pair._1, pair._2))
+  def funcl: Parser[Function] = id ~ ("(" ~> expr <~ ")") ^^ (pair => Function(pair._1, pair._2))
 
-  def term  : Parser[Math] = factor ~ rep( ("*"  | "/") ~ factor) ^^ {
+  def term: Parser[Expression] = factor ~ rep(("*" | "/") ~ factor) ^^ {
     case number ~ list => list.foldLeft(number) {
-      case (x, "*" ~ y) => Prod(x,y)
-      case (x, "/" ~ y) => Div(x,y)
+      case (x, "*" ~ y) => Prod(x, y)
+      case (x, "/" ~ y) => Div(x, y)
     }
   }
 
-  def expr  : Parser[Math] = term ~ rep("+" ~ term | "-" ~ term) ^^ {
+  def expr: Parser[Expression] = term ~ rep("+" ~ term | "-" ~ term) ^^ {
     case number ~ list => list.foldLeft(number) {
       case (x, "+" ~ y) => Summ(x, y)
       case (x, "-" ~ y) => Sub(x, y)
     }
   }
 
-  def apply(input: String): Double = parseAll(expr, input) match {
-    case Success(result, i) =>
-      println(result)
-      // println(i)
-      result.eval
-    case failure : NoSuccess => scala.sys.error(failure.msg)
+
+  def apply(input: String,const: Map[String, Double] = default_const,
+            funcl: Map[String, Double => Double] = default_function): Double = {
+    def eval (expr: Expression): Double = {
+      expr match {
+        case Number(x) => x
+        case Id(name) => const(name)
+        case Summ(a,b) => eval(a) + eval(b)
+        case Sub(a,b) => eval(a) - eval(b)
+        case Prod(a,b) => eval(a) * eval(b)
+        case Div(a,b) => eval(a) / eval(b)
+        case Function(id, expr) => funcl(id.name)(eval(expr))
+      }
+    }
+    parseAll(expr, input) match {
+      case Success(result, string) =>
+        println(result)
+        eval(result)
+
+      case failure: NoSuccess => scala.sys.error(failure.msg)
+    }
   }
 }
