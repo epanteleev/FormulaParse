@@ -1,7 +1,5 @@
 package Calculator
 
-import Calculator.AST.parseAll
-
 import scala.util.parsing.combinator.RegexParsers
 
 sealed trait Expression
@@ -12,18 +10,24 @@ case class Sub (a:Expression, b: Expression) extends Expression
 case class Prod (a:Expression, b: Expression) extends Expression
 case class Div(a:Expression, b: Expression) extends Expression
 case class Id (name: String) extends Expression
-case class Function(id: Id, expr: Expression) extends Expression
+case class Pow(expr: Expression, degree: Double ) extends Expression
+
+case class Function1(name: Id, expr: Expression) extends Expression
 case class Der(exp: Expression) extends Expression
 
-class AST(const: Map[String, Double] ) extends RegexParsers {
+class AST extends RegexParsers {
 
   def number: Parser[Number] = """-?\d+(\.\d*)?""".r ^^ { n => Number(n.toDouble) }
 
   def id: Parser[Id] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ { str => Id(str) }
 
-  def factor: Parser[Expression] = derivative | funcl | id | number | "(" ~> expr <~ ")"
+  def const: Parser[Pow] = id ^^ { named => Pow(named,1) }
 
-  def funcl: Parser[Function] = id ~ ("(" ~> expr  ~ ("," ~ expr <~ ")").? <~ ")" ) ^^ (pair => Function(pair._1, pair._2._1))
+  def factor: Parser[Expression] = derivative | funcl | const | number | "(" ~> expr <~ ")"
+
+  def funcl: Parser[Expression] = id ~ ("(" ~> expr  ~ ("," ~> expr).? <~ ")" ) ^^
+    {case  i ~ (arg ~ None)=> Function1(i, arg)
+    case  Id("pow") ~ (arg1 ~ Some(Number(b))) => Pow(arg1, b)}
 
   def term: Parser[Expression] = factor ~ (("*" | "/") ~ factor).* ^^ {
     case number ~ list => list.foldLeft(number) {
@@ -50,12 +54,12 @@ class AST(const: Map[String, Double] ) extends RegexParsers {
 }
 
 object AST  extends RegexParsers{
-  def apply(input: String, const: Map[String, Double]): Expression =  new AST(const) parse input
+  def apply(input: String): Expression =  new AST parse input
 }
 
 object Calculate{
-  lazy val defaultConst: Map[String, Double] = Map("PI" -> math.Pi)
-  lazy val defaultFunction: Map[String, Double => Double] = Map(
+  lazy val defaultConst: Map[String, Double] = Map("PI" -> math.Pi, "e" -> math.E)
+  lazy val defaultFunction1: Map[String, Double => Double] = Map(
     "sin" -> ((x:Double) => math.sin(x)),
     "sin`" -> ((x:Double) => math.cos(x)),
     "cos" -> ((x:Double) => math.cos(x)),
@@ -73,13 +77,9 @@ object Calculate{
         case Sub(a, b) => eval(a) - eval(b)
         case Prod(a, b) => eval(a) * eval(b)
         case Div(a, b) => eval(a) / eval(b)
-        case Function(id, expr) => defaultFunction(id.name)(eval(expr))
-        case Der(exp) => {
-          //println(exp)
-          val newAst = der(exp)
-          println(newAst)
-          eval(newAst)
-        }
+        case Function1(id, expr) => defaultFunction1(id.name)(eval(expr))
+        case Der(exp) => eval(der(exp))
+        case Pow(x,d) => math.pow(eval(x),d)
       }
     }
     def der(expr: Expression): Expression ={
@@ -89,15 +89,21 @@ object Calculate{
         case Number(x) => Number(0)
         case Summ(a,b) => Summ(der(a),der(b))
         case Sub(a,b) => Sub(der(a),der(b))
-        case Id(x) => Id(x)
-        case Function(name,arg) => {
+        case Id(x) => Number(0)
+        case Function1(name,arg) => {
           arg match {
-            case Id(x) => Function(Id(name.name + "`"),arg)
-            case _ => Prod(Function(Id(name.name + "`"),arg),der(arg))
+            case Id(x) => Function1(name,arg)
+            case _ => Prod(Function1(Id(name.name + "`"),arg),der(arg))
           }
         }
+        case Pow(e, d) =>  e match {
+          case Number(e) => Number(0)
+          case Id(e) => Prod(Number(d), Pow(Id(e), d - 1.0))
+          case e  => Prod(Prod(Number(d), Pow(e, d - 1.0)),der(e))
+        }
+        case Der(exp) =>  throw new Error("Calculate.apply.der")
       }
     }
-    eval(AST(str,const))
+    eval(AST(str))
   }
 }
