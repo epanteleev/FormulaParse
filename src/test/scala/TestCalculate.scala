@@ -8,11 +8,11 @@ class TestCalculate extends FunSuite {
   }
 
   test("Calculate: (2 + 2)*4 = 16") {
-    assert(Calculate("(2 + 2)*4") === 16)
+    assert(Calculate("(2 + 2) * 4") === 16)
   }
 
   test("Calculate: sin(PI/2) + 1 = 2") {
-    assert(Calculate("sin(PI/2) + 1") === 2)
+    assert(Calculate("sin(PI / 2) + 1") === 2)
   }
 
   test("Calculate: cos(PI/2) + 1 = 1") {
@@ -32,18 +32,37 @@ class TestCalculate extends FunSuite {
   }
 
   new TestCase {
-    test("Calculate:  x = 3;\n (pow(x,4))` = 101") {
-      assert(Calculate("(pow(x,4))`",map) === 108)
+    test("Calculate:  x = 3;\n (pow(x,4))`x = 101") {
+      assert(Calculate("(pow(x,4))`x",map) === 108)
     }
 
     test("Calculate: (x)` = 1.0") {
-      assert(Calculate("(x)`",map) === 1.0)
+      assert(Calculate("(x)`x",map) === 1.0)
     }
 
-    test("Calculate: ((x)`)` -> Exception ") {
-      intercept[Error] {
-        Calculate("((x)`)`",map)
-      }
+    test("Calculate: ((x)` + 1)`x = 0 ") {
+        assert(Calculate("((x)`x + 1)`x",map) === 0)
+    }
+    test("Calculate: ((x)`x)`x = 0 ") {
+      assert(Calculate("((x)`x)`x",map) === 0)
+    }
+    test("Calculate: ((cos(y))`y)`y = -1 ") {
+            assert(Calculate("((cos(y))`y)`y",map) ===  -1)
+    }
+
+    test("Calculate: (cos(y))`y + (sin(z))`z = -1 ") {
+      assert(Calculate(" (cos(y))`y + (sin(z))`z",map) ===  -1)
+    }
+
+    test("Calculate: (tan(y) + y)`y + 1 ") {
+      assert(Calculate("(tan(y) * y)`y + 1",map) ===  1)
+    }
+    test("Calculate: (((pow(x,2))`x)`x)`x ") {
+      assert(Calculate("(((pow(x,2))`x)`x)`x",map) ===  0)
+    }
+
+    test("Calculate: ((cos(y))`y)`x = 0 ") {
+      assert(Calculate("((cos(y))`y)`x",map) ===  0)
     }
   }
 }

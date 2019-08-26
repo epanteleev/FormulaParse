@@ -12,8 +12,8 @@ object Main extends App {
   println(Calculate("-1 + sin(PI/2) * 2 - 4.0"))
   println(Calculate("cos(PI + PI)"))
  // println(AST(" 6 + (x + 4)`"))
-  println(Calculate("(tan(x) + 4)` + 6",const))
-  println(Calculate("(cos(x))` + (sin(x))`",const))
+  //println(Calculate("(tan(x) + 4)` + 6",const))
+  println(Calculate("(cos(x))`x + (sin(x))`x",const))
   //println(Calculate("log(2, 4)",const))
 
 }
