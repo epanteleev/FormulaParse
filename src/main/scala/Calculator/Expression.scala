@@ -92,7 +92,7 @@ case class Cos (expr: Expression) extends Expression{
 case class Der(exp: Expression,variable: String) extends Expression{
   override def eval: Double = {
     val newAst = exp deriv variable
-    println(newAst)
+   // println(newAst)
     newAst.eval
   }
 
