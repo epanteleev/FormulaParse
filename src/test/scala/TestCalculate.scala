@@ -7,6 +7,10 @@ class TestCalculate extends FunSuite {
     assert(Calculate("2 + 2") === 4)
   }
 
+  test("Calculate: 2 - 2 + 4 = 4") {
+    assert(Calculate("2 - 2 + 4") === 4)
+  }
+
   test("Calculate: (2 + 2)*4 = 16") {
     assert(Calculate("(2 + 2) * 4") === 16)
   }
@@ -32,15 +36,22 @@ class TestCalculate extends FunSuite {
   }
 
   new TestCase {
+    test("Calculate: ((cos(y))`y)`x = 0 ") {
+      assert(Calculate("((cos(y))`x)`y",map) ===  0)
+    }
+    test("Calculate:  x = 3;\n x * 1 = x") {
+      assert(Calculate("x * 1",map) === 3)
+    }
+
     test("Calculate:  x = 3;\n (pow(x,4))`x = 101") {
       assert(Calculate("(pow(x,4))`x",map) === 108)
     }
 
-    test("Calculate: (x)` = 1.0") {
+    test("Calculate: (x)`x = 1.0") {
       assert(Calculate("(x)`x",map) === 1.0)
     }
 
-    test("Calculate: ((x)` + 1)`x = 0 ") {
+    test("Calculate: ((x)`x + 1)`x = 0 ") {
         assert(Calculate("((x)`x + 1)`x",map) === 0)
     }
     test("Calculate: ((x)`x)`x = 0 ") {
@@ -61,8 +72,13 @@ class TestCalculate extends FunSuite {
       assert(Calculate("(((pow(x,2))`x)`x)`x",map) ===  0)
     }
 
-    test("Calculate: ((cos(y))`y)`x = 0 ") {
-      assert(Calculate("((cos(y))`y)`x",map) ===  0)
+    test("Calculate: (cos(y))`x = 0 ") {
+      assert(Calculate("(cos(y))`x",map) ===  0)
     }
+
+    test("Calculate: ((cos(y))`y)'z + ((sin(z))`z)`y = 0 ") {
+      assert(Calculate(" ((cos(y))`y)`z - ((sin(z))`z)`y",map) ===  0)
+    }
+
   }
 }

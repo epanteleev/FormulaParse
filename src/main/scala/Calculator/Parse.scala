@@ -16,7 +16,7 @@ class Parse(const: Map[String, Double]) extends RegexParsers {
 
   def id: Parser[String] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ { str => str toString }
 
-  def variable: Parser[Pow] = id ^^ { name => Pow(Id(name,const(name)),1) }
+  def variable: Parser[Constant] = id ^^ { name => Constant(name,const(name)) }
 
   def factor: Parser[Expression] = derivative | funcl | variable | number | "(" ~> expr <~ ")"
 
