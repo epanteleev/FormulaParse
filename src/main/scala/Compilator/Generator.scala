@@ -1,0 +1,5 @@
+package Compilator
+
+class Generator {
+
+}

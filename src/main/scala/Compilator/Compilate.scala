@@ -1,0 +1,5 @@
+package Calculator
+
+class Compilator {
+
+}
