@@ -1,16 +1,30 @@
-import Calculator.Parse
+import Calculator.{MakeByteCode, Parse}
+import Interpretator.Execute
 
 object Main extends App {
+  ///(Compilator.Compilate("x = 2 + 4\n x"))
+  val loop =
+    """
+      |x = 0
+      |while ( x != 3){
+      | x = x + 1
+      |}
+      |x
+      |""".stripMargin
+  MakeByteCode(loop).foreach( x => println(x))
+  println(Execute(loop))
+  val programm =
+    """
+      |x = 3 + 4
+      |x = x + 6*0
+      |if ( x == 7){
+      | y = 6
+      | if( y != 6){
+      |   x = x + y
+      | }
+      |}
+      |return x
+      |""".stripMargin
 
-  //println(Compilator.Compilate("x = 2+3\n return x"))
-  val r = Parse("x = 2+3 if ( x == 0) {\n return x \n} return 4 \n")
-  println(r)
-
-//  MakeByteCode("x = 2+3\n x") foreach (x => println(x))
-//  println(Execute("x = 2\n (x + 3)"))
-//  MakeByteCode("(1 + 4)*2 - 9").foreach( x => println(s"$x"))
-//  println(Interpret(MakeByteCode("(1 + 4)*2")))
-//  println(Interpret(MakeByteCode("(1 + 4)*2 - 9")))
-//  println(Interpret(MakeByteCode("9/3")))
-
+  println(Execute(programm))  // res: 7
 }
