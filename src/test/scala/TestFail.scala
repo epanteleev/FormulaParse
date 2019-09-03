@@ -39,4 +39,10 @@ class TestFail extends FunSuite {
       Calculate("sin")
     }
   }
+
+  test("Fail: (sin(2))`") {
+    intercept[Error] {
+      Calculate("(sin(2))`")
+    }
+  }
 }

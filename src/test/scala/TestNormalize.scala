@@ -49,4 +49,15 @@ class TestNormalize extends FunSuite {
     }
   }
 
+
+  trait NormalizeTest4 {
+    val ast = CalculateDeriv("(x + 0)", "x", Map("x" -> 4.0))
+  }
+
+  new NormalizeTest4 {
+    test("Ast4 toString") {
+      assert(ast.toString === "1.0")
+    }
+  }
+
 }

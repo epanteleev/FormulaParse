@@ -6,10 +6,8 @@ object Normalize {
   @scala.annotation.tailrec
   private def norm(expression: Expression): Expression = {
     expression match {
-      case Summ(left, Number(0.0)) => norm(left)
-      case Summ(Number(0.0), right) => norm(right)
-      case Sub(left, Number(0.0)) => norm(left)
-      case Sub(Number(0.0), right) => norm(right)
+      case Summ(left, right) => normSubSumm(left, right)
+      case Sub(left, right) => normSubSumm(left, right)
       case Prod(_, Number(0.0)) => Number(0.0)
       case Prod(Number(0.0), _) => Number(0.0)
       case Prod(left, Number(1.0)) => norm(left)
@@ -18,4 +16,11 @@ object Normalize {
     }
   }
 
+  private def normSubSumm(left: Expression, right: Expression): Expression ={
+    (left, right) match {
+      case (Number(0.0), right) => norm(right)
+      case (left, Number(0.0)) => norm(left)
+      case  _ => Summ(left, right)
+    }
+  }
 }
