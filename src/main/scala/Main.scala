@@ -1,10 +1,11 @@
-package Calculator
+import Calculator.{Calculate, Parse}
 
 object Main extends App {
   val map: Map[String, Double] = Map("x" -> 3.0, "y" -> 0.0, "z" -> math.Pi)
   val function = Map("sin" -> ((x:Double) => math.sin(x)),
     "cos" -> ((x:Double) => math.cos(x)))
 
+  println(Calculate("pow(9, )",map))
 //  println(Calculate("(1 + 4)*2"))
 //  println(Calculate("(1 + 4)*2 - 4.0"))
 //  //println(Calculate("( 1 + x ) * 2 - 4.0", const,function))

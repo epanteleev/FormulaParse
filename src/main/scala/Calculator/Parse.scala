@@ -1,5 +1,6 @@
 package Calculator
 
+import scala.language.postfixOps
 import scala.util.parsing.combinator.RegexParsers
 
 case class CalculateError(loc: Location, msg: String){
@@ -18,7 +19,9 @@ class Parse(const: Map[String, Double]) extends RegexParsers {
 
   def variable: Parser[Constant] = id ^^ { name => Constant(name,const(name)) }
 
-  def factor: Parser[Expression] = derivative | funcl | variable | number | "(" ~> expr <~ ")"
+  def factor: Parser[Expression] = neg | derivative | funcl | variable | number | "(" ~> expr <~ ")"
+
+  def neg: Parser[Expression] = "-" ~> expr ^^ {exp => Neg(exp)}
 
   def funcl: Parser[Expression] = id ~ ("(" ~> expr  ~ ("," ~> expr).? <~ ")" ) ^^
     {case  "sin" ~ (arg ~ None)=> Sin(arg)
@@ -32,6 +35,7 @@ class Parse(const: Map[String, Double]) extends RegexParsers {
       case (x, "/" ~ y) => Div(x, y)
     }
   }
+
   def derivative: Parser[Expression] = ("(" ~> expr <~ ")`") ~ id ^^ { case e ~ i => Der(e,i)}
 
   def expr: Parser[Expression] = term ~ ("+" ~ term | "-" ~ term).* ^^ {
@@ -45,21 +49,9 @@ class Parse(const: Map[String, Double]) extends RegexParsers {
     case Success(result, string) => Right(result)
     case NoSuccess(msg, next) => Left(CalculateError(Location(next.pos.line, next.pos.column),msg))
   }
-
 }
 
 object Parse  extends RegexParsers{
   def apply(input: String, const: Map[String, Double]): Either[CalculateError,Expression] =
     new Parse(const) parse input
-}
-
-object Calculate{
-  lazy val defaultConst: Map[String, Double] = Map("PI" -> math.Pi, "e" -> math.E)
-
-  def apply(str: String): Double = apply(str, defaultConst)
-
-  def apply(str: String, const: Map[String, Double] ) : Double = Parse(str,const) match {
-    case Right(result) => result.eval
-    case Left(error) => scala.sys.error(error toString)
-  }
 }

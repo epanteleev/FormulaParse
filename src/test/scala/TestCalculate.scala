@@ -36,10 +36,19 @@ class TestCalculate extends FunSuite {
   }
 
   new TestCase {
+
+    test("Calculate: cos(-z) = -1 ") {
+      assert(Calculate("cos(-z)",map) ===  -1)
+    }
+
+    test("Calculate: cos(-(x - 3.0000 )) ") {
+      assert(Calculate("cos(-(x - 3.0000 ))",map) ===  1)
+    }
+
     test("Calculate: ((cos(y))`y)`x = 0 ") {
       assert(Calculate("((cos(y))`x)`y",map) ===  0)
     }
-    test("Calculate:  x = 3;\n x * 1 = x") {
+    test("Calculate:  x = 3;\n x * 1 = 3") {
       assert(Calculate("x * 1",map) === 3)
     }
 
