@@ -12,7 +12,7 @@ case class Location(line: Int, column: Int) {
 
 class Parse extends RegexParsers {
 
-  lazy val eqvl: Map[String, String] = Map("==" -> "EQ", "!=" -> "notEQ")
+  lazy val eqvl: Map[String, String] = Map("==" -> "EQ", "!=" -> "NOTEQ")
   def number: Parser[Number] = """-?\d+(\.\d*)?""".r ^^ { n => Number(n.toDouble) }
 
   def id: Parser[String] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ { str => str toString }
@@ -28,9 +28,9 @@ class Parse extends RegexParsers {
 
   def block: Parser[List[Expression]] = "{" ~> start <~ "}"
 
-  def loop: Parser[Loop] = "while" ~> "(" ~> bool ~ ")" ~ block ^^ { case con ~ paren ~ bl => Loop(con,bl)}
+  def loop: Parser[Loop] = "while" ~> "(" ~> bool ~ ")" ~ block ^^ { case con ~ _ ~ bl => Loop(con,bl)}
 
-  def condition: Parser[Expression] = "if" ~>"(" ~> bool ~")" ~ block ^^ { case cond ~ paren ~ bl => IfThen(cond,bl)  }
+  def condition: Parser[Expression] = "if" ~>"(" ~> bool ~")" ~ block ^^ { case cond ~ _ ~ bl => IfThen(cond,bl)  }
 
   def funcl: Parser[Expression] = id ~ ("(" ~> expr  ~ ("," ~> expr).? <~ ")" ) ^^ {
     case  "pow" ~ (arg1 ~ Some(Number(b))) => Pow(arg1, b)}

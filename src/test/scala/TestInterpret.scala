@@ -3,8 +3,6 @@ import org.scalatest.FunSuite
 
 class TestInterpret extends FunSuite {
 
-  import Calculator._
-
   test("Execute: x = 5\n y=5+x\n y ") {
     assert(Execute("x = 5\n y=5+x\n y") === 10)
   }

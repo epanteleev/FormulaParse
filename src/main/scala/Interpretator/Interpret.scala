@@ -13,80 +13,88 @@ private class Interpret (allcode: List[CodeOp]) {
   var stack: mutable.Stack[Double] =  mutable.Stack[Double]()
   var map: Map[String, (Double, Double) => Boolean] = Map(
     "EQ" -> ((a: Double, b : Double) => a==b),
-    "notEQ" -> ((a: Double, b : Double) => a != b))
+    "NOTEQ" -> ((a: Double, b : Double) => a != b))
+  var ret: Double = Double.MaxValue
 
-  private def end: Double = if (stack.nonEmpty) stack pop else throw new Error("stack is empty")
+
 
   def exec(code: List[CodeOp]): Double = {
-    code match {
+    val arr: Array[CodeOp] = code toArray
+    var address: Int = 0
 
-      case Push(num) :: list => {
+    while(address < code.length){
+      address = doneCommand(address, arr(address))
+    }
+    if(stack.nonEmpty) stack pop else ret
+  }
+
+  private def doneCommand(adr: Int, code: CodeOp): Int ={
+    code match {
+      case Push(num) => {
         stack.push(num)
-        exec(code.tail)
+        adr + 1
       }
-      case BinaryOp("SUM") :: list => {
+      case BinaryOp("SUM") => {
         stack.push(stack.pop + stack.pop)
-        exec(code.tail)
+        adr + 1
       }
-      case BinaryOp("SUB") :: list => {
+      case BinaryOp("SUB") => {
         stack.push(-(stack.pop - stack.pop))
-        exec(code.tail)
+        adr + 1
       }
-      case BinaryOp("PROD") :: list => {
+      case BinaryOp("PROD") => {
         stack.push(stack.pop * stack.pop)
-        exec(code.tail)
+        adr + 1
       }
-      case BinaryOp("DIV") :: list => {
+      case BinaryOp("DIV") => {
         val a = stack.pop
         val b = stack.pop
         stack.push(b / a)
-        exec(code.tail)
+        adr + 1
       }
-      case BinaryOp("POW") :: list => {
+      case BinaryOp("POW") => {
         val a = stack.pop
         val b = stack.pop
         stack.push(math.pow(b, a))
-        exec(code.tail)
+        adr + 1
       }
 
-      case Store(name) :: list => {
+      case Store(name) => {
         val saved = stack.pop()
-        env.put(name,saved)
-        exec(code.tail)
+        env.put(name, saved)
+        adr + 1
       }
-      case Load(name) :: list => {
-        val loaded = {env.get(name) match {
-          case Some(double) => double
-          case None => throw new Error("xoxo")
-        }}
-        stack.push(loaded)
-        exec(code.tail)
-      }
-      case IO("PRINT") :: list => {
-        println(stack.pop)
-        exec(code.tail)
-      }
-      case If(cmp,b) :: list => {
-        val bl = map(cmp)(stack.pop(),stack.pop)
-        if(bl) exec(code.tail)
-        else exec(code.drop(b + 1))
-      }
-      case Goto(adr) :: list => {
-        if(adr < 0){
-          val newList = allcode.drop(allcode.length - (code.length - adr))
-          exec(newList)
-        } else{
-          exec( code.drop(adr + 1))
+      case Load(name) => {
+        val loaded = {
+          env.get(name) match {
+            case Some(double) => double
+            case None => throw new Error("xoxo")
+          }
         }
+        stack.push(loaded)
+        adr + 1
       }
-      case Ret() :: list => end
-      case Nil => end
+      case IO("PRINT") => {
+        println(stack.pop)
+        adr + 1
+      }
+      case If(cmp, b) => {
+        val bl = map(cmp)(stack.pop(), stack.pop)
+        if (bl) adr + 1
+        else adr + b + 1
+      }
+      case Goto(pos) => {
+        adr + pos
+      }
+      case Ret() => {
+        ret = stack.pop
+        Int.MaxValue
+      }
     }
   }
-
 
 }
 
 object Interpret {
-  def apply(code: List[CodeOp]): Double = new Interpret(code) exec (code)
+  def apply(code: List[CodeOp]): Double = new Interpret(code) exec code
 }

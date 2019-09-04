@@ -17,6 +17,10 @@ class TestIfThen extends FunSuite {
     assert(Execute("x = 2\n if(x == 2)\n { x = x+ x}\n return x") === 4.0)
   }
 
+  test("Execute: x = 2 if(x == 2) { return 6 } return x") {
+    assert(Execute("x = 2 if(x == 2) { return 6 } return x") === 4.0)
+  }
+
 
   trait InternCond1{
     val programm: String =

@@ -1,5 +1,0 @@
-package Compilator
-
-class Generator {
-
-}
