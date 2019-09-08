@@ -179,14 +179,3 @@ case class ZeroDivision(expr: Expression) extends Expression {
 
   override def toString: String = s"{$expr / 0.0}"
 }
-
-
-case class NotUsed (expr: Expression) extends Expression {
-  override def eval: Double = {
-    val _ = expr eval; 0.0
-  }
-
-  override def derivative(variable: String): Expression = this
-
-  override def toString: String = expr toString
-}
