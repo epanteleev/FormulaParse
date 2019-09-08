@@ -274,7 +274,7 @@ class TestNormalize extends FunSuite {
 
 
   trait NormalizeTestNotUsed19 {
-    val ast = Parse("((x/3.0 + 6)`x * 0) + (-x + 5) * 0", Map("x" -> 7.0))
+    val ast = Parse("((-x/3.0 + 6)`x * 0) + (-x + 5) * 0", Map("x" -> 7.0))
     val Ast: Expression = ast match {
       case Right(el) => el
       case Left(_) => throw new Error("expected Right")
@@ -283,7 +283,7 @@ class TestNormalize extends FunSuite {
   }
 
   new NormalizeTestNotUsed19 {
-    test("Normalize: ((x/3.0 + 6)`x * 0) + (-x + 5) * 0") {
+    test("Normalize: ((-x/3.0 + 6)`x * 0) + (-x + 5) * 0") {
       assert(normalAst.toString === "<x=7.0> / 3.0 * 0.0") // fail
     }
   }

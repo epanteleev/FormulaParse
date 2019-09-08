@@ -56,13 +56,20 @@ object Normalize {
         case (None, None) => r
       }
     }
-    def iterNormNotUsed(expr: Expression): Option[Expression] ={
+    def iterNormNotUsed(expr: Expression): Option[Expression] = {
       expr match {
-        case Summ (left, right) => internalNorm(Summ.apply, left, right)
-        case Sub (left, right) =>  internalNorm(Sub.apply, left, right)
-        case Prod (left, right)=> internalNorm(Prod.apply, left, right)
+        case Summ(left, right) => internalNorm(Summ.apply, left, right)
+        case Sub(left, right) => internalNorm(Sub.apply, left, right)
+        case Prod(left, right) => internalNorm(Prod.apply, left, right)
         case Div(_) => Some(expr)
         case Der(e, v) => {
+          val l = iterNormNotUsed(e)
+          l match {
+            case Some(_) => l
+            case None => l
+          }
+        }
+        case Neg(e) => {
           val l = iterNormNotUsed(e)
           l match {
             case Some(_) => l
