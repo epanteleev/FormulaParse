@@ -64,7 +64,7 @@ class TestCalculate extends FunSuite {
         assert(Calculate("((x)`x + 1)`x",map) === 0)
     }
     test("Calculate: ((x)`x)`x = 0 ") {
-      assert(Calculate("((x)`x)`x",map) === 0)
+      assert(Calculate("((x)`x)`x", map) === 0)
     }
     test("Calculate: ((cos(y))`y)`y = -1 ") {
             assert(Calculate("((cos(y))`y)`y",map) ===  -1)

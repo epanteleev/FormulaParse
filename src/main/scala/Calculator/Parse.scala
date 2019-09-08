@@ -52,6 +52,6 @@ class Parse(const: Map[String, Double]) extends RegexParsers {
 }
 
 object Parse  extends RegexParsers{
-  def apply(input: String, const: Map[String, Double]): Either[CalculateError,Expression] =
+  def apply(input: String, const: Map[String, Double] = Map()): Either[CalculateError,Expression] =
     new Parse(const) parse input
 }

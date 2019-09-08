@@ -1,28 +1,18 @@
-import Calculator.{Calculate, CalculateDeriv}
+import Calculator._
 
 object Main extends App {
   val map: Map[String, Double] = Map("x" -> 3.0, "y" -> 0.0, "z" -> math.Pi)
   val function = Map("sin" -> ((x:Double) => math.sin(x)),
     "cos" -> ((x:Double) => math.cos(x)))
+  //val d = 3 / 0
+  //println(CalculateDeriv("(x*x + 0) + 1", "x", Map("x" -> 4.0)))
+  val ast = Parse("((x/3.0 + 6)`x * 0) + 5", Map("x" -> 7.0))
+  val Ast: Expression = ast match {
+    case Right(el) => el
+    case Left(_) => throw new Error("expected Right")
+  }
+  val normalAst = Normalize(Ast)
 
-  println(CalculateDeriv("(x*x + 0) + 1", "x", Map("x" -> 4.0)))
-//  println(Calculate("(1 + 4)*2"))
-//  println(Calculate("(1 + 4)*2 - 4.0"))
-//  //println(Calculate("( 1 + x ) * 2 - 4.0", const,function))
-//  println(Calculate("(-1 + 4) * 2 - 4.0"))
-//  println(Calculate("-1 + sin(PI/2) * 2 - 4.0"))
-//  println(Calculate("cos(PI + PI)"))
-// // println(AST(" 6 + (x + 4)`"))
-//  //println(Calculate("(tan(x) + 4)` + 6",const))
-//  println(Calculate("(cos(x))`x + (sin(x))`x",const))
-//  //println(Calculate("log(2, 4)",const))
-//  println("\n")
-//  println(Calculate("(cos(x))`x",const))
-//  println("\n")
-//  println(Calculate("((cos(x))`x)`x",const))
- // println("\n")
-  //println(Calculate("((cos(y))`y)`x", map))
-
-  println(Calculate("((x)`x + 1)`x",map))
+  println(normalAst)
 
 }
