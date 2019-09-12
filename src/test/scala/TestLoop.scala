@@ -48,4 +48,25 @@ class TestLoop extends FunSuite {
       assert(Execute(programm) === res)
     }
   }
+
+  trait loop3{
+    val programm: String =
+      """
+        |x = 0
+        |while ( x < 10000){
+        | if( x == 10 ){
+        |  x = x * 10
+        | }
+        | x = x + 1
+        |}
+        |return x
+        |""".stripMargin
+    val res: Double = 10000
+  }
+
+  new loop3 {
+    test("Execute: loop3") {
+      assert(Execute(programm) === res)
+    }
+  }
 }

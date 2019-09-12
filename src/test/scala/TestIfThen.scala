@@ -18,7 +18,7 @@ class TestIfThen extends FunSuite {
   }
 
   test("Execute: x = 2 if(x == 2) { return 6 } return x") {
-    assert(Execute("x = 2 if(x == 2) { return 6 } return x") === 4.0)
+    assert(Execute("x = 2 if(x == 2) { return 6 } return x") === 6.0)
   }
 
 
@@ -40,6 +40,60 @@ class TestIfThen extends FunSuite {
 
   new InternCond1 {
     test("Execute: InternalCond") {
+      assert(Execute(programm) === res)
+    }
+  }
+
+  trait InternCond2 {
+    val programm: String =
+      """
+        |x = 3 + 4
+        |x = x + 6*0
+        |if ( x == 7){
+        | y = 6
+        | if( y != 6){
+        |   x = x + y
+        | }
+        | else{
+        |   y = 5
+        |   r = 8
+        |   t = 0
+        | }
+        |}
+        |return y
+        |""".stripMargin
+    val res: Double = 5.0
+  }
+
+  new InternCond2 {
+    test("Execute: InternalCond2") {
+      assert(Execute(programm) === res)
+    }
+  }
+
+  trait InternCond3 {
+    val programm: String =
+      """
+        |x = 3 + 4
+        |x = x + 6*0
+        |if ( 7 == x){
+        | y = 6
+        | if( 6 != y){
+        |   x = x + y
+        | }
+        | else{
+        |   y = 5
+        |   r = 8
+        |   t = 0
+        | }
+        |}
+        |return y
+        |""".stripMargin
+    val res: Double = 5.0
+  }
+
+  new InternCond3 {
+    test("Execute: InternalCond3") {
       assert(Execute(programm) === res)
     }
   }

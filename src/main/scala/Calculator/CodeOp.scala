@@ -34,10 +34,13 @@ case class Ret() extends CodeOp{
   override def toString: String = "RETURN"
 }
 
-case class If(cmp: String, label: Int) extends CodeOp{
-  override def toString: String = s"IF $cmp $label"
+case class If(cmp: String, labelName: String) extends CodeOp {
+  override def toString: String = s"IF $cmp $labelName"
 }
 
-case class Goto(adr: Int) extends CodeOp{
-  override def toString: String = s"GOTO $adr"
+case class Goto(labelName: String) extends CodeOp {
+  override def toString: String = s"GOTO $labelName"
+}
+case class Label(name: String) extends CodeOp {
+  override def toString: String = s"LABEL $name"
 }

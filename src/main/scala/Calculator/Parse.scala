@@ -2,7 +2,7 @@ package Calculator
 
 import scala.util.parsing.combinator.RegexParsers
 
-case class CalculateError(loc: Location, msg: String){
+case class CalculateError(loc: Location, msg: String) {
   override def toString = s"In $loc. $msg"
 }
 
@@ -12,7 +12,7 @@ case class Location(line: Int, column: Int) {
 
 class Parse extends RegexParsers {
 
-  lazy val eqvl: Map[String, String] = Map("==" -> "EQ", "!=" -> "NOTEQ")
+  lazy val eqvl: Map[String, String] = Map("==" -> "EQ", "!=" -> "NOTEQ", "<" -> "LESS", ">" -> "GREATER")
   def number: Parser[Number] = """-?\d+(\.\d*)?""".r ^^ { n => Number(n.toDouble) }
 
   def id: Parser[String] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ { str => str toString }
@@ -22,7 +22,7 @@ class Parse extends RegexParsers {
   def varNum: Parser[Expression] = variable | number
   def factor: Parser[Expression] = funcl | varNum | "(" ~> expr <~ ")"
 
-  def bool: Parser[Condition] = varNum ~ ("==" | "!=") ~ varNum ^^ { case lh ~ op ~ rh  => Condition(lh, eqvl(op), rh)}
+  def bool: Parser[Condition] = varNum ~ ("==" | "!=" | "<" | ">") ~ varNum ^^ { case lh ~ op ~ rh  => Condition(lh, eqvl(op), rh) }
 
   def ret: Parser[Return] = "return" ~> expr ^^ {n => Return(n)}
 
@@ -30,10 +30,14 @@ class Parse extends RegexParsers {
 
   def loop: Parser[Loop] = "while" ~> "(" ~> bool ~ ")" ~ block ^^ { case con ~ _ ~ bl => Loop(con,bl)}
 
-  def condition: Parser[Expression] = "if" ~>"(" ~> bool ~")" ~ block ^^ { case cond ~ _ ~ bl => IfThen(cond,bl)  }
+  def condition: Parser[Expression] = "if" ~>"(" ~> bool ~")" ~ block ~ ("else" ~ block).? ^^ {
+    case cond ~ _ ~ bl ~ None => IfThen(cond,bl, Nil)
+    case cond ~ _ ~ bl ~ Some(_ ~ elseBl) =>  IfThen(cond,bl, elseBl)
+  }
 
   def funcl: Parser[Expression] = id ~ ("(" ~> expr  ~ ("," ~> expr).? <~ ")" ) ^^ {
-    case  "pow" ~ (arg1 ~ Some(Number(b))) => Pow(arg1, b)}
+    case  "pow" ~ (arg1 ~ Some(Number(b))) => Pow(arg1, b)
+  }
 
   def term: Parser[Expression] = factor ~ (("*" | "/") ~ factor).* ^^ {
     case number ~ list => list.foldLeft(number) {
@@ -73,12 +77,11 @@ object MakeByteCode{
     val res = Parse(str)
 
     @scala.annotation.tailrec
-    def comp(result: List[Expression], list: List[CodeOp]):List[CodeOp] = {
+    def comp(result: List[Expression], list: List[CodeOp]): List[CodeOp] = {
       result match {
         case head :: l => comp(result.tail, list ++ head.toByteCode)
         case Nil => list
       }
-
     }
     comp(res,List())
   }
