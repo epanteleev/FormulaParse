@@ -16,6 +16,12 @@ class RegAlloc {
     add(ret)
     ret
   }
+  def map[A](f :String => A): mutable.Stack[A] = {
+    val ret = stack.map(f)
+    stack.clear()
+    ret
+  }
+
   def stackPointer: String = "%esp"
   def basePointer: String = "%ebp"
   def add(reg: String): Unit = stack push reg
@@ -26,13 +32,13 @@ object RegAlloc {
   def apply(): RegAlloc = new RegAlloc()
 }
 
-object x86Generator {
+class x86Generator {
   var vars: mutable.Set[String] = mutable.Set[String]()
   val RegBuff: RegAlloc = RegAlloc()
   val localSpace = StackFrame()
 
   @scala.annotation.tailrec
-  def gen(acc: List[x86Instruction] = List(), code: List[CodeOp]): List[x86Instruction] = {
+  final def gen(acc: List[x86Instruction] = List(), code: List[CodeOp]): List[x86Instruction] = {
 
     code match {
       case Nil => acc
@@ -87,12 +93,15 @@ object x86Generator {
       case Label(name) :: _ => {
         gen(acc ++ List(x86Label(name)), code.tail)
       }
-      case BinaryOp(op) :: _ => {
+      case BinaryOp(op) :: list => {
         val x = RegBuff.getReg
         val y = RegBuff.getReg
         val ret = List(x86BinOp(BinaryOpToInst(op), x, y))
         RegBuff.add(y)
-        gen(acc ++ ret, code.tail)
+        gen(acc ++ ret, list)
+      }
+      case Call(name) :: list => {
+        gen(acc ++ RegBuff.map(x => {localSpace.push(x); x86Push(x)}) ++ List({RegBuff.add("%eax"); x86Call(name)}), list)
       }
    }
   }
@@ -133,4 +142,8 @@ object x86Generator {
     }
     x86Jump(label, t)
   }
+}
+
+object x86Generator{
+  def apply(): x86Generator = new x86Generator()
 }

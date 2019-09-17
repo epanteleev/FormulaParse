@@ -19,7 +19,7 @@ case class x86BinOp(op: String, a: String, b: String) extends x86Instruction{
 }
 
 case class x86Call(label: String) extends x86Instruction{
-  override def toString: String = s"\tcall $label"
+  override def toString: String = s"\tcall\t$label"
 }
 
 case class x86Ret() extends x86Instruction {

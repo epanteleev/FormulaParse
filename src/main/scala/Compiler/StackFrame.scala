@@ -19,6 +19,10 @@ class LocalSpace {
     iter(stack, 4)
   }
 
+  def foreach(f:String => Unit):Unit = stack.foreach(f)
+
+  def map[A](f:String => A):List[A] = stack.map(f)
+
   def contains(nameVar: String): Boolean = stack.contains(nameVar)
 }
 
@@ -29,7 +33,7 @@ object LocalSpace {
 class StackFrame {
   private var stackLocalSpaces: List[LocalSpace] = List[LocalSpace](LocalSpace())
 
-  def newFrame: Unit = stackLocalSpaces = LocalSpace() :: stackLocalSpaces
+  def newFrame(): Unit = stackLocalSpaces = LocalSpace() :: stackLocalSpaces
 
   def pop: LocalSpace = {
     if (stackLocalSpaces.isEmpty) throw new Error("StackFrame is empty")

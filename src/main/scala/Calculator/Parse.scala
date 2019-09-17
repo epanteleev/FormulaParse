@@ -35,9 +35,10 @@ class Parse extends RegexParsers {
     case cond ~ _ ~ bl ~ Some(_ ~ elseBl) =>  IfThen(cond,bl, elseBl)
   }
 
-  def funcl: Parser[Expression] = id ~ ("(" ~> expr  ~ ("," ~> expr).* <~ ")" ) ^^ {
-    case  "pow" ~ (arg1 ~ List(Number(b))) => Pow(arg1, b)
-    case  name ~ (arg1 ~ list) => CallFunction(name, List(arg1) ++ list)
+  def funcl: Parser[Expression] = id ~ ("(" ~> (expr).?  ~ ("," ~> expr).* <~ ")" ) ^^ {
+    case  "pow" ~ (Some(arg1) ~ List(Number(b))) => Pow(arg1, b)
+    case  name ~ (Some(arg1) ~ list) => CallFunction(name, List(arg1) ++ list)
+    case name ~(None ~ Nil) => CallFunction(name, Nil)
   }
 
   def term: Parser[Expression] = factor ~ (("*" | "/") ~ factor).* ^^ {

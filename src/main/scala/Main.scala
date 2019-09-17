@@ -3,18 +3,6 @@ import Interpretator.Execute
 import Compiler._
 object Main extends App {
 
-  val s = StackFrame()
-  s.push("x")
-  s.push("0")
-  s.push("yyy")
-  s.push("5")
-  s.push("tyu")
-  s.newFrame
-  s.push("y")
-  s.push("1")
-
-  s.getPos("x")
-
   val programm: String =
     """
       |y = 10 * 1
@@ -36,9 +24,12 @@ object Main extends App {
       |""".stripMargin
   println(MakeByteCode(programm))
   println(Compilate(programm))
-//  val programm =
-//"""
-//  |printInt (2 + 4)
-//  |""".stripMargin
-//  println(MakeByteCode(programm))
+  val programm2 =
+"""
+  |i = readInt()
+  |printInt (i + 4)
+  |return 0
+  |""".stripMargin
+  println(MakeByteCode(programm2))
+  println(Compilate(programm2))
 }
