@@ -1,4 +1,4 @@
-package Compilator
+package Compiler
 
 sealed trait x86Instruction
 

@@ -1,4 +1,4 @@
-package Compilator
+package Compiler
 
 import Calculator._
 

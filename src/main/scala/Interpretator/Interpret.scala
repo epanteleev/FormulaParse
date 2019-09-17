@@ -100,6 +100,8 @@ private class Interpret (code: List[CodeOp]) {
       case Ret() => {
         stack.pop toInt
       }
+      case End() => doneCommand(adr + 1) // fix
+      case Begin() => doneCommand(adr + 1) // fix
       case otherwise => error(s"command skipped: $otherwise")
     }
   }

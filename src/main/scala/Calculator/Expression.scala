@@ -111,7 +111,7 @@ case class IfThen(condition: Condition, body: List[Expression], elseBlock: List[
       case If(op, l1) => {
         val l0 = NameGen()
         val l2 = NameGen()
-        List(Goto(l0), Label(l1)) ++ ifBl ++ List(Goto(l2), Label(l0)) ++ res ++ List(If(op, l1)) ++ elseBl ++ List(Label(l2))
+        List(Goto(l0), Label(l1), Begin()) ++ ifBl ++ List(End(), Goto(l2), Label(l0)) ++ res ++ List(If(op, l1),Begin()) ++ elseBl ++ List(End(), Label(l2))
       }
       case others => throw new Error(s"expected If, found $others")
     }
@@ -130,9 +130,18 @@ case class Loop(condition: Condition, expr: List[Expression]) extends Expression
     c.head match {
       case If(op, l1) =>  {
         val l0 = NameGen()
-        List(Goto(l0), Label(l1)) ++ Block ++ List(Label(l0)) ++ res ++ List(If(op, l1))
+        List(Goto(l0), Label(l1), Begin()) ++ Block ++ List(End(), Label(l0)) ++ res ++ List(If(op, l1))
       }
       case others => throw new Error(s"expected If, found $others")
     }
+  }
+}
+
+case class CallFunction(name: String, opList: List[Expression]) extends Expression {
+  override def toString: String = s"$name($opList)"
+
+  override def toByteCode: List[CodeOp] = {
+    val args = gen(opList)
+    args ++ List(Call(name))
   }
 }

@@ -22,7 +22,7 @@ class Parse extends RegexParsers {
   def varNum: Parser[Expression] = variable | number
   def factor: Parser[Expression] = funcl | varNum | "(" ~> expr <~ ")"
 
-  def bool: Parser[Condition] = varNum ~ ("==" | "!=" | "<" | ">") ~ varNum ^^ { case lh ~ op ~ rh  => Condition(lh, eqvl(op), rh) }
+  def bool: Parser[Condition] = expr ~ ("==" | "!=" | "<" | ">") ~ expr ^^ { case lh ~ op ~ rh  => Condition(lh, eqvl(op), rh) }
 
   def ret: Parser[Return] = "return" ~> expr ^^ {n => Return(n)}
 
@@ -35,8 +35,9 @@ class Parse extends RegexParsers {
     case cond ~ _ ~ bl ~ Some(_ ~ elseBl) =>  IfThen(cond,bl, elseBl)
   }
 
-  def funcl: Parser[Expression] = id ~ ("(" ~> expr  ~ ("," ~> expr).? <~ ")" ) ^^ {
-    case  "pow" ~ (arg1 ~ Some(Number(b))) => Pow(arg1, b)
+  def funcl: Parser[Expression] = id ~ ("(" ~> expr  ~ ("," ~> expr).* <~ ")" ) ^^ {
+    case  "pow" ~ (arg1 ~ List(Number(b))) => Pow(arg1, b)
+    case  name ~ (arg1 ~ list) => CallFunction(name, List(arg1) ++ list)
   }
 
   def term: Parser[Expression] = factor ~ (("*" | "/") ~ factor).* ^^ {
