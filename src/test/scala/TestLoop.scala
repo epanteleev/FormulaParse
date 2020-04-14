@@ -1,9 +1,7 @@
-import Interpretator.Execute
+import interpreter.Execute
 import org.scalatest.FunSuite
 
 class TestLoop extends FunSuite {
-
-  import Calculator._
 
   test("i = 0 \n while( i != 9){ i = i + 3} return i") {
     assert(Execute("i = 0 \n while( i != 9){ i = i + 3} return i") === 9)

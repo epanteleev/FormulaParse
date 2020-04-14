@@ -1,4 +1,6 @@
-package Calculator
+package IR
+
+import IR.MIR.CmpOp
 
 import scala.util.parsing.combinator.RegexParsers
 
@@ -12,17 +14,17 @@ case class Location(line: Int, column: Int) {
 
 class Parse extends RegexParsers {
 
-  lazy val eqvl: Map[String, String] = Map("==" -> "EQ", "!=" -> "NOTEQ", "<" -> "LESS", ">" -> "GREATER")
-  def number: Parser[Number] = """-?\d+(\.\d*)?""".r ^^ { n => Number(n.toDouble) }
+  def number: Parser[Number] = """-?\d+(\.\d*)?""".r ^^ { n => Number(n.toDouble, tDouble()) }
 
   def id: Parser[String] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ { str => str toString }
 
   def variable: Parser[Variable] = id ^^ { name => Variable(name) }
 
   def varNum: Parser[Expression] = variable | number
+
   def factor: Parser[Expression] = funcl | varNum | "(" ~> expr <~ ")"
 
-  def bool: Parser[Condition] = expr ~ ("==" | "!=" | "<" | ">") ~ expr ^^ { case lh ~ op ~ rh  => Condition(lh, eqvl(op), rh) }
+  def bool: Parser[Condition] = expr ~ ("==" | "!=" | "<" | ">") ~ expr ^^ { case lh ~ op ~ rh => Condition(lh, CmpOp(op), rh) }
 
   def ret: Parser[Return] = "return" ~> expr ^^ {n => Return(n)}
 
@@ -36,7 +38,6 @@ class Parse extends RegexParsers {
   }
 
   def funcl: Parser[Expression] = id ~ ("(" ~> (expr).?  ~ ("," ~> expr).* <~ ")" ) ^^ {
-    case  "pow" ~ (Some(arg1) ~ List(Number(b))) => Pow(arg1, b)
     case  name ~ (Some(arg1) ~ list) => CallFunction(name, List(arg1) ++ list)
     case name ~(None ~ Nil) => CallFunction(name, Nil)
   }
@@ -50,14 +51,14 @@ class Parse extends RegexParsers {
 
   def expr: Parser[Expression] = term ~ ("+" ~ term | "-" ~ term).* ^^ {
     case number ~ list => list.foldLeft(number) {
-      case (x, "+" ~ y) => Summ(x, y)
+      case (x, "+" ~ y) => Sum(x, y)
       case (x, "-" ~ y) => Sub(x, y)
     }
   }
 
-  def eq: Parser[Expression] =  id ~ "=" ~ expr ^^ { case name ~ e ~ exp => Equality(name,exp)}
+  def assigment: Parser[Expression] = id ~ "=" ~ expr ^^ { case name ~ e ~ exp => Assignment(name, exp) }
 
-  def start: Parser[List[Expression]] = rep(loop | condition | ret | eq | factor)
+  def start: Parser[List[Expression]] = rep(loop | condition | ret | assigment | expr | factor)
 
   def parse(input: String) : List[Expression] = {
       parseAll(start, input) match {
@@ -71,20 +72,4 @@ class Parse extends RegexParsers {
 
 object Parse  extends RegexParsers{
   def apply(input: String): List[Expression] = new Parse parse input
-}
-
-object MakeByteCode{
-
-  def apply(str: String) : List[CodeOp] = {
-    val res = Parse(str)
-
-    @scala.annotation.tailrec
-    def comp(result: List[Expression], list: List[CodeOp]): List[CodeOp] = {
-      result match {
-        case head :: l => comp(result.tail, list ++ head.toByteCode)
-        case Nil => list
-      }
-    }
-    comp(res,List())
-  }
 }

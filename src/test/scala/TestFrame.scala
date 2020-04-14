@@ -1,4 +1,3 @@
-import Interpretator.Execute
 import org.scalatest.FunSuite
 
 class TestFrame extends FunSuite {

@@ -1,9 +1,7 @@
-import Interpretator.Execute
+import interpreter.Execute
 import org.scalatest.FunSuite
 
-class TestIfThen extends FunSuite {
-
-  import Calculator._
+class TestCmpThen extends FunSuite {
 
   test("Execute: x = 2+3\n if ( x == 0) {\n y = x + 5 return x \n}\n  y = 7\n return (4 + y) \n") {
     assert(Execute("x = 2+3 if ( x == 0) {\n y = x + 5 return x \n}\n  y = 7\n return (4 + y) \n") === 11.0)

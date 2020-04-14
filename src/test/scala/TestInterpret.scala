@@ -1,4 +1,4 @@
-import Interpretator.Execute
+import interpreter.Execute
 import org.scalatest.FunSuite
 
 class TestInterpret extends FunSuite {

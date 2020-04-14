@@ -1,7 +1,5 @@
 
-import Calculator.MakeByteCode
 import org.scalatest.{FlatSpec, Matchers}
-import Compiler.Compilate
 
 class TestСompiler extends FlatSpec with Matchers {
 
