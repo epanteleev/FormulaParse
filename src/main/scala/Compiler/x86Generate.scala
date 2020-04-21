@@ -1,37 +1,117 @@
-//package Compiler
-//import IR.MIR.{Begin, BinaryOp, Call, CodeOp, End, Goto, If, Label, Load, Push, Ret, Store}
-//import IR._
-//
-//import scala.collection.mutable
-//import scala.collection.mutable.{HashMap, Stack}
-//
-//class RegAlloc {
-//  private val x86regs = Array("%ebx", "%ecx", "%esi", "%edi", "%edx","%eax")
-//  private val stack: mutable.Stack[String] = mutable.Stack[String]()
-//
-//  def allocate: String = {
-//    val len = stack.length
-//    val arrLen = x86regs.length
-//    val ret = if(stack.isEmpty) x86regs(0)
-//              else  x86regs((len) % arrLen)
-//    add(ret)
-//    ret
-//  }
-//  def map[A](f :String => A): mutable.Stack[A] = {
-//    val ret = stack.map(f)
-//    stack.clear()
-//    ret
-//  }
-//
-//  def stackPointer: String = "%esp"
-//  def basePointer: String = "%ebp"
-//  def add(reg: String): Unit = stack push reg
-//  def getReg: String = stack pop
-//}
-//
-//object RegAlloc {
-//  def apply(): RegAlloc = new RegAlloc()
-//}
+package Compiler
+
+import IR.MIR._
+import IR._
+
+import scala.collection.mutable
+
+class x86Generate(cfg: Graph) {
+  val RegBuff: RegAllocator = RegAllocator()
+  val localSpace: StackFrame = StackFrame()
+  var vars: mutable.Set[String] = mutable.Set[String]()
+
+  def interpretGraph: x86Context = {
+    val ctx = x86Context()
+
+    @scala.annotation.tailrec
+    def iter(bl: Block): Block = {
+      interpretBlock(bl, ctx)
+      interpretFlow(bl.flowInst, ctx)
+      val next = cfg.nextBlock(bl)
+      next match {
+        case Some(x) => iter(x)
+        case None => bl
+      }
+    }
+
+    iter(cfg.block.head)
+    ctx
+  }
+
+  private def interpretBlock(block: Block, ctx: x86Context): Unit = {
+    @scala.annotation.tailrec
+    def executeCodeOp(list: List[Inst]): Unit = {
+      if (list.nonEmpty) {
+        list.head match {
+          case op: Push => fit(op, ctx)
+          case op: BinaryOp => fit(op, ctx)
+          case op: Store => fit(op, ctx)
+          case op: Load => fit(op, ctx)
+          case op: Cmp => fit(op, ctx)
+          case op: Call => fit(op, ctx)
+          case otherwise => error(s"command skipped: $otherwise")
+        }
+        executeCodeOp(list.tail)
+      }
+    }
+
+    executeCodeOp(block.inst)
+  }
+
+  def fit(arg: Push, ctx: x86Context): Unit = {
+    arg.num match {
+      case tInt(op) => ctx.pushInst(x86Movl(RegBuff.allocate, op.toString))
+      case otherwise => throw new RuntimeException(s"$otherwise: Type unsupported yet")
+    }
+
+  }
+
+  def fit(arg: Cmp, ctx: x86Context): Unit = {
+  }
+
+  def fit(op: Call, ctx: x86Context): Unit = {
+
+  }
+
+  def fit(arg: BinaryOp, ctx: x86Context): Unit = {
+    val x = RegBuff.pop
+    val y = RegBuff.pop
+    val inst = arg.op match {
+      case "SUM" => x86Add(x, y)
+      case "SUB" => x86Sub(x, y)
+      case "PROD" => x86Prod(x, y)
+      case "DIV" => x86Div(x, y)
+      case otherwise => throw new RuntimeException(s"$otherwise: Undefine binary operator")
+    }
+    RegBuff.push(y)
+    ctx.pushInst(inst)
+  }
+
+  def fit(arg: Store, ctx: x86Context): Unit = {
+    if (!localSpace.contains(arg.name)) {
+      val s = RegBuff.pop
+      localSpace.push(arg.name)
+      ctx.pushInst(x86Push(s))
+    } else {
+      val s = localSpace.getPos(arg.name)
+      val r = RegBuff.pop
+      ctx.pushInst(x86Movl("[" + RegAllocator.basePointer + "-" + s + "]", r))
+    }
+  }
+
+  def fit(arg: Load, ctx: x86Context): Unit = {
+    val s = localSpace.getPos(arg.name)
+    val r = RegBuff.allocate
+    ctx.pushInst(x86Movl(r, "[" + RegAllocator.basePointer + "-" + s + "]")) // --???---
+  }
+
+  def interpretFlow(arg: Inst, ctx: x86Context): Unit = {
+    arg match {
+      case _: Ret =>
+        ctx.pushInst(x86Movl("rax", RegBuff.pop))
+        ctx.pushInst(x86Popl("rbp"))
+        freeStack(ctx)
+        ctx.pushInst(x86Ret())
+      case _ => ???
+    }
+  }
+
+  def freeStack(ctx: x86Context): Unit = {
+    val frame = localSpace.pop
+    ctx.pushInst(x86Add(RegAllocator.stackPointer, frame.size.toString))
+  }
+
+}
 //
 //class x86Generator {
 //  var vars: mutable.Set[String] = mutable.Set[String]()

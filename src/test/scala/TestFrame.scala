@@ -1,5 +1,6 @@
 import org.scalatest.FunSuite
 
+// fix it
 class TestFrame extends FunSuite {
 
   import Compiler.StackFrame

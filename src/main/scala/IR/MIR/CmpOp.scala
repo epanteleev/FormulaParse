@@ -1,9 +1,5 @@
 package IR.MIR
 
-import IR.MIR
-
-import scala.collection.mutable
-
 trait CmpOp {
   def not: CmpOp = {
     this match {
@@ -29,9 +25,11 @@ object CmpOp {
 case class Eq() extends CmpOp {
   override def toString: String = "EQ"
 }
+
 case class NotEq() extends CmpOp {
   override def toString: String = "NE"
 }
+
 case class Less() extends CmpOp {
   override def toString: String = "LS"
 }

@@ -1,28 +1,29 @@
 package IR.MIR
 
-import IR.Flow
-
 trait Node{
   def id(): Int
 }
 
-class Block private(var inst: List[CodeOp], val id: Int) extends Node {
-  var ifInst: If = _
-  def instruction: List[CodeOp] = inst
+class Block private(var inst: List[Inst], val id: Int) extends Node {
 
-  def pushInst(i: CodeOp): Unit = inst = inst ++ List(i)
+  var flowInst: Inst = null
+
+  def pushInst(i: Inst): Unit = inst = inst ++ List(i)
 
   def !=(bl: Block): Boolean = id != bl.id
+
   def ==(bl: Block): Boolean = id == bl.id
 
   override def toString: String = s"L$id:" +
-    inst.foldLeft(new String())((x: String, y: CodeOp) => s"$x\n\t$y")
+    inst.foldLeft(new String())((x: String, y: Inst) => s"$x\n\t$y") + s"\n\t$flowInst"
 }
 
 object Block {
-  def apply(codeOp: List[CodeOp]): Block = new Block(codeOp, BlockIdGen())
+  def apply(codeOp: List[Inst]): Block = new Block(codeOp, BlockIdGen())
+
   def apply(): Block = new Block(List(), BlockIdGen())
-  def unapply(arg: Block): Option[(List[CodeOp])] = Some(arg.inst)
+
+  def unapply(arg: Block): Option[(List[Inst])] = Some(arg.inst)
 }
 
 class End extends Node {
