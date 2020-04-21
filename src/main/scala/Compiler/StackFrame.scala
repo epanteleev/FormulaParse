@@ -6,7 +6,7 @@ class LocalSpace {
     stack =  stack ++ List(a)
   }
 
-  def size: Int = stack.size * 4
+  def size: Int = stack.size * 8
 
   def getPos(nameVar: String): Int = {
     @scala.annotation.tailrec
@@ -16,7 +16,8 @@ class LocalSpace {
         case Nil => -1
       }
     }
-    iter(stack, 4)
+
+    iter(stack, 8)
   }
 
   def foreach(f:String => Unit):Unit = stack.foreach(f)

@@ -13,34 +13,37 @@ case class Location(line: Int, column: Int) {
 }
 
 class Parse extends RegexParsers {
+  def integer: Parser[Number] = """-?\d+""".r ^^ { n => Number(tInt(n.toInt)) }
 
-  def number: Parser[Number] = """-?\d+(\.\d*)?""".r ^^ { n => Number(n.toDouble, tDouble()) }
+  def double: Parser[Number] = """-?\d+\.(\d*)?""".r ^^ { n => Number(tDouble(n.toDouble)) }
 
-  def id: Parser[String] = "[a-zA-Z][a-zA-Z0-9_]*".r ^^ { str => str toString }
+  def number: Parser[Number] = double | integer
+
+  def id: Parser[String] = "[a-zA-Z][a-zA-Z0-9_]*".r
 
   def variable: Parser[Variable] = id ^^ { name => Variable(name) }
 
-  def varNum: Parser[Expression] = variable | number
-
-  def factor: Parser[Expression] = funcl | varNum | "(" ~> expr <~ ")"
-
   def bool: Parser[Condition] = expr ~ ("==" | "!=" | "<" | ">") ~ expr ^^ { case lh ~ op ~ rh => Condition(lh, CmpOp(op), rh) }
 
-  def ret: Parser[Return] = "return" ~> expr ^^ {n => Return(n)}
+  def ret: Parser[Return] = "return".? ~> expr ^^ { n => Return(n) }
 
   def block: Parser[List[Expression]] = "{" ~> start <~ "}"
 
-  def loop: Parser[Loop] = "while" ~> "(" ~> bool ~ ")" ~ block ^^ { case con ~ _ ~ bl => Loop(con,bl)}
+  def loop: Parser[Loop] = "while" ~> "(" ~> bool ~ ")" ~ block ^^ { case con ~ _ ~ bl => Loop(con, bl) }
 
-  def condition: Parser[Expression] = "if" ~>"(" ~> bool ~")" ~ block ~ ("else" ~ block).? ^^ {
-    case cond ~ _ ~ bl ~ None => IfThen(cond,bl, Nil)
-    case cond ~ _ ~ bl ~ Some(_ ~ elseBl) =>  IfThen(cond,bl, elseBl)
+  def condition: Parser[Expression] = "if" ~> "(" ~> bool ~ ")" ~ block ~ ("else" ~ block).? ^^ {
+    case cond ~ _ ~ bl ~ None => IfThen(cond, bl, Nil)
+    case cond ~ _ ~ bl ~ Some(_ ~ elseBl) => IfThen(cond, bl, elseBl)
   }
 
-  def funcl: Parser[Expression] = id ~ ("(" ~> (expr).?  ~ ("," ~> expr).* <~ ")" ) ^^ {
-    case  name ~ (Some(arg1) ~ list) => CallFunction(name, List(arg1) ++ list)
-    case name ~(None ~ Nil) => CallFunction(name, Nil)
+  def varOrNum: Parser[Expression] = variable | number
+
+  def functionCall: Parser[Expression] = id ~ ("(" ~> (expr).? ~ ("," ~> expr).* <~ ")") ^^ {
+    case name ~ (Some(arg1) ~ list) => CallFunction(name, List(arg1) ++ list)
+    case name ~ (None ~ Nil) => CallFunction(name, Nil)
   }
+
+  def factor: Parser[Expression] = functionCall | varOrNum | "(" ~> expr <~ ")"
 
   def term: Parser[Expression] = factor ~ (("*" | "/") ~ factor).* ^^ {
     case number ~ list => list.foldLeft(number) {
@@ -56,9 +59,9 @@ class Parse extends RegexParsers {
     }
   }
 
-  def assigment: Parser[Expression] = id ~ "=" ~ expr ^^ { case name ~ e ~ exp => Assignment(name, exp) }
+  def assignment: Parser[Expression] = "val" ~> id ~ "=" ~ expr ^^ { case name ~ e ~ exp => Assignment(name, exp) }
 
-  def start: Parser[List[Expression]] = rep(loop | condition | ret | assigment | expr | factor)
+  def start: Parser[List[Expression]] = rep(loop | condition | assignment | ret | expr | factor)
 
   def parse(input: String) : List[Expression] = {
       parseAll(start, input) match {

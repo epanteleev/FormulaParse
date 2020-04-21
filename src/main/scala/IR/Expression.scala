@@ -3,11 +3,15 @@ package IR
 import IR.MIR._
 
 sealed trait Expression {
-  def foreach(f: Expression => Unit ): Unit = f(this)
+  def foreach(f: Expression => Unit): Unit = f(this)
+
+  def toStringHelper(expList: List[Expression]): String = {
+    expList.foldLeft(new String())((s: String, exp: Expression) => s"$s ${exp.toString}")
+  }
 }
 
-case class Number private(double: Double, typeid: TypeKind) extends Expression {
-  override def toString: String = double toString
+case class Number private(typeId: TypeId) extends Expression {
+  override def toString: String = typeId.toString
 }
 
 abstract class BinaryNode(val a: Expression, val b: Expression) extends Expression {
@@ -50,7 +54,7 @@ case class Not(expr: Expression) extends Expression {
 
 case class Assignment(name: String, expr: Expression) extends Expression {
 
-  override def toString: String = s"$name = $expr"
+  override def toString: String = s"val $name = $expr"
 
   override def foreach(f: Expression => Unit): Unit = {
     expr.foreach(f)
@@ -75,12 +79,17 @@ case class Return(exp: Expression) extends Expression {
 abstract class Flow(val condition: Condition) extends Expression
 
 case class IfThen(override val condition: Condition, ifBlock: List[Expression], elseBlock: List[Expression]) extends Flow(condition) {
-  override def toString: String = s"if ( $condition ) {\n $ifBlock\n} else {\n$elseBlock\n}"
+  override def toString: String = {
+    val string = if (elseBlock.nonEmpty) {
+      toStringHelper(elseBlock)
+    }
+    s"if ( $condition ) {\n ${toStringHelper(ifBlock)}\n} else {\n$string\n}"
+  }
 }
 
 case class Loop(override val condition: Condition, expr: List[Expression]) extends Flow(condition) {
 
-  override def toString: String = s"while( $condition) {\n$expr\n}\n"
+  override def toString: String = s"while( $condition) {\n${toStringHelper(expr)}\n}\n"
 
   //override def toByteCode(cfg: Graph): Graph = ???
 
