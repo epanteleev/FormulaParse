@@ -1,6 +1,6 @@
 package IR.MIR
 
-import IR.TypeId
+import IR.Type.TypeId
 
 sealed trait Inst
 

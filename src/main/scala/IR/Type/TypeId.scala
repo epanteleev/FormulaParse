@@ -1,4 +1,4 @@
-package IR
+package IR.Type
 
 sealed trait TypeId extends Any
 

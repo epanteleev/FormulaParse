@@ -83,11 +83,21 @@ object Convert {
       case _: Div => block.pushInst(BinaryOp("DIV"))
       case ld: Variable => block.pushInst(Load(ld.name))
       case _: Not => block.pushInst(UnaryOp("NOT"))
-      case a: Assignment => block.pushInst(Store(a.name))
+      case a: Assignment => walkAssignment(a, block)
       case f: CallFunction => block.pushInst(Call(f.name))
       case _: Return => block.flowInst = Ret()
       case op => throw new RuntimeException(s"$op. Match error")
     }
   }
-
+  def walkAssignment(exp: Assignment, block: Block): Unit = {
+    exp match {
+      case l: Let =>
+        block.pushInst(Store(l.name))
+        block.addDef(l.name)
+      case r: ReDef =>
+        block.pushInst(Store(r.name))
+        if(block.notDef(r.name))
+          throw new RuntimeException(s"undefine symbol ${r.name}. Abort")
+    }
+  }
 }

@@ -1,6 +1,7 @@
 package Compiler
 
 import IR.MIR._
+import IR.Type.tInt
 import IR._
 
 import scala.collection.mutable

@@ -10,9 +10,9 @@ class TestLoop extends FunSuite {
   trait loop1 {
     val programm: String =
       """
-        |x = 0
-        |y = 0
-        |while ( x == 0){
+        |val x = 0
+        |val y = 0
+        |while (x == 0){
         | y = y + 1
         | if( y != 6){
         |   x = 7
@@ -32,7 +32,7 @@ class TestLoop extends FunSuite {
   trait loop2{
     val programm: String =
       """
-        |x = 0
+        |val x = 0
         |while ( x != 10000){
         | x = x + 1
         |}
@@ -50,9 +50,9 @@ class TestLoop extends FunSuite {
   trait loop3{
     val programm: String =
       """
-        |x = 0
-        |while ( x < 10000){
-        | if( x == 10 ){
+        |val x = 0
+        |while (x < 10000){
+        | if(x == 10 ){
         |  x = x * 10
         | }
         | x = x + 1

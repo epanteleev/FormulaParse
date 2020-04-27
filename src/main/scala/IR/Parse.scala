@@ -1,6 +1,7 @@
 package IR
 
 import IR.MIR.CmpOp
+import IR.Type.{tDouble, tInt}
 
 import scala.util.parsing.combinator.RegexParsers
 
@@ -59,7 +60,10 @@ class Parse extends RegexParsers {
     }
   }
 
-  def assignment: Parser[Expression] = "val" ~> id ~ "=" ~ expr ^^ { case name ~ e ~ exp => Assignment(name, exp) }
+  def assignment: Parser[Expression] = "val".? ~ id ~ "=" ~ expr ^^ {
+    case Some(_) ~ name ~ _ ~ exp => Let(name, exp)
+    case None ~ name ~ _ ~ exp => ReDef(name, exp)
+  }
 
   def start: Parser[List[Expression]] = rep(loop | condition | assignment | ret | expr | factor)
 

@@ -1,21 +1,28 @@
 package IR.MIR
 
-trait Node{
-  def id(): Int
-}
+import scala.collection.mutable
 
-class Block private(var inst: List[Inst], val id: Int) extends Node {
+class Block private(var inst: List[Inst], val id: Int) {
+  var defInfo: mutable.Set[String] = mutable.Set[String]()
 
   var flowInst: Inst = null
 
   def pushInst(i: Inst): Unit = inst = inst ++ List(i)
 
   def !=(bl: Block): Boolean = id != bl.id
-
   def ==(bl: Block): Boolean = id == bl.id
 
-  override def toString: String = s"L$id:" +
-    inst.foldLeft(new String())((x: String, y: Inst) => s"$x\n\t$y") + s"\n\t$flowInst"
+  def addDef(name: String):Boolean = defInfo add name
+
+  def isDef(name: String):Boolean = defInfo contains name
+
+  def notDef(name: String):Boolean = !isDef(name)
+
+  override def toString: String = {
+    val instStr = inst.foldLeft(new mutable.StringBuilder())((x: mutable.StringBuilder, y: Inst) => x ++= s"\n\t$y")
+    val defStr = defInfo.foldLeft(new mutable.StringBuilder("["))((x: mutable.StringBuilder, y: String) => x ++= s" $y ") + "]"
+    s"L$id: " + defStr + instStr  + s"\n\t$flowInst"
+  }
 }
 
 object Block {
@@ -24,21 +31,6 @@ object Block {
   def apply(): Block = new Block(List(), BlockIdGen())
 
   def unapply(arg: Block): Option[(List[Inst])] = Some(arg.inst)
-}
-
-class End extends Node {
-  override def id(): Int = -1
-}
-
-object End {
-  private var _end: End = null
-
-  def apply(): End = {
-    if (_end == null) {
-      _end = new End()
-    }
-    _end
-  }
 }
 
 object BlockIdGen {

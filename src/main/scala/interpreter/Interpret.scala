@@ -1,6 +1,7 @@
 package interpreter
 
 import IR.MIR._
+import IR.Type.{tDouble, tInt}
 import IR._
 
 object Interpret {
